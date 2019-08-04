@@ -5,63 +5,55 @@ import React, { useState } from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import {
-  createBottomTabNavigator,
-  createStackNavigator,
-} from 'react-navigation';
+import tabBarIcon from './utils/tabBarIcon';
+// Import screens
+import FeedScreen from './screens/FeedScreen';
+import NewPostScreen from './screens/NewPostScreen';
+import SelectPhotoScreen from './screens/SelectPhotoScreen';
 
-import AppNavigator from './navigation/AppNavigator';
-
-export default function App(props) {
-  const [isLoadingComplete, setLoadingComplete] = useState(false);
-
-  if (!isLoadingComplete && !props.skipLoadingScreen) {
-    return (
-      <AppLoading
-        startAsync={loadResourcesAsync}
-        onError={handleLoadingError}
-        onFinish={() => handleFinishLoading(setLoadingComplete)}
-      />
-    );
-  } else {
-    return (
-      <View style={styles.container}>
-        {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-        <AppNavigator />
-      </View>
-    );
-  }
-}
-
-async function loadResourcesAsync() {
-  await Promise.all([
-    Asset.loadAsync([
-      require('./assets/images/robot-dev.png'),
-      require('./assets/images/robot-prod.png'),
-    ]),
-    Font.loadAsync({
-      // This is the font that we are using for our tab bar
-      ...Ionicons.font,
-      // We include SpaceMono because we use it in HomeScreen.js. Feel free to
-      // remove this if you are not using it in your app
-      'space-mono': require('./assets/fonts/SpaceMono-Regular.ttf'),
-    }),
-  ]);
-}
-
-function handleLoadingError(error) {
-  // In this case, you might want to report the error to your error reporting
-  // service, for example Sentry
-  console.warn(error);
-}
-
-function handleFinishLoading(setLoadingComplete) {
-  setLoadingComplete(true);
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
+// Create our main tab navigator for moving between the Feed and Photo screens
+const navigator = createBottomTabNavigator(
+  {
+    // The name 'Feed' is used later for accessing screens
+    Feed: {
+      // Define the component we will use for the Feed screen.
+      screen: FeedScreen,
+      navigationOptions: {
+        tabBarIcon: tabBarIcon('home'),
+      },
+    },
+    // All the same stuff but for the photo screen
+    Photo: {
+      screen: SelectPhotoScreen,
+      navigationOptions: {
+        tabBarIcon: tabBarIcon('add-circle'),
+      },
+    },
   },
-});
+  {
+    // We want to hide the labels and set a nice 2-tone tint system for our tabs
+    tabBarOptions: {
+      showLabel: false,
+      activeTintColor: 'black',
+      inactiveTintColor: 'gray',
+    },
+  },
+);
+
+// Create the navigator that pushes high-level screens like the 'NewPost' screens
+const stackNavigator = createStackNavigator(
+  {
+    Main: {
+      screen: navigator,
+      navigationOptions: { title: 'FaceNope' },
+    },
+    // This screen will not have a tab bar
+    NewPost: NewPostScreen,
+  },
+  {
+    cardStyle: { backgroundColor: 'white' },
+  },
+);
+
+// Export it as the root component
+export default stackNavigator;
